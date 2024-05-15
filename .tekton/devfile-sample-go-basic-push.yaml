@@ -17,6 +17,10 @@ metadata:
   namespace: avsingh1234-tenant
 spec:
   params:
+  - name: jira-project
+    value: ITRAT
+  - name: jira-server
+    value: https://issues.redhat.com
   - name: dockerfile
     value: docker/Dockerfile
   - name: git-url
@@ -65,6 +69,16 @@ spec:
       - name: workspace
         workspace: workspace
     params:
+    - description: ID of JIRA Project
+      name: jira-project
+      type: string
+    - description: JIRA server URL
+      name: jira-server
+      type: string
+    - description: Name of secret where JIRA PAT is stored
+      name: jira-secret
+      type: string
+      default: jira-secret
     - description: Source Repository URL
       name: git-url
       type: string
@@ -135,6 +149,27 @@ spec:
       name: JAVA_COMMUNITY_DEPENDENCIES
       value: $(tasks.build-container.results.JAVA_COMMUNITY_DEPENDENCIES)
     tasks:
+    - name: list-jira-issues
+      params:
+      - name: jira-project
+        value: $(params.jira-project)
+      - name: jira-server
+        value: $(params.jira-server)
+      - name: jira-secret
+        value: $(params.jira-secret)
+      - name: skip-checks
+        value: $(params.skip-checks)
+      runAfter:
+      - clone-repository
+      taskRef:
+        params:
+        - name: name
+          value: jira
+        - name: bundle
+          value: quay.io/cloudbuddy7715/tekton-bundles
+        - name: kind
+          value: task
+        resolver: bundles
     - name: init
       params:
       - name: image-url
